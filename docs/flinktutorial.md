@@ -1,4 +1,4 @@
-# 有状态的流式处理简介
+# 第一章，有状态的流式处理简介
 
 Apache Flink是一个分布式流处理器，具有直观和富有表现力的API，可实现有状态的流处理应用程序。它以容错的方式有效地大规模运行这些应用程序。 Flink于2014年4月加入Apache软件基金会作为孵化项目，并于2015年1月成为顶级项目。从一开始，Flink就拥有一个非常活跃且不断增长的用户和贡献者社区。到目前为止，已有超过五百人为Flink做出贡献，并且它已经发展成为最复杂的开源流处理引擎之一，并得到了广泛采用的证明。 Flink为不同行业和全球的许多公司和企业提供大规模的商业关键应用。
 
@@ -139,7 +139,7 @@ Apache Flink是第三代分布式流处理器，它拥有极富竞争力的功�
 
 除了这些功能之外，Flink还是一个非常易于开发的框架，因为它易于使用的API。嵌入式执行模式，可以在单个JVM进程中启动应用程序和整个Flink系统，这种模式一般用于在IDE中运行和调试Flink作业。在开发和测试Flink应用程序时，此功能非常有用。
 
-# 流处理基础
+# 第二章，流处理基础
 
 ## 数据流编程简介
 
@@ -399,7 +399,7 @@ Socket，文件，Kafka Topic或传感器数据接口中提取数据。数据出
 
 目前我们看到的一致性保证都是由流处理器实现的，也就是说都是在Flink流处理器内部保证的。而在真实世界中，流处理应用除了流处理器以外还包含了数据源（例如Kafka）和持久化系统。端到端的一致性保证意味着结果的正确性贯穿了整个流处理应用的始终。每一个组件都保证了它自己的一致性。而整个端到端的一致性级别取决于所有组件中一致性最弱的组件。要注意的是，我们可以通过弱一致性来实现更强的一致性语义。例如，当任务的操作具有幂等性时，比如流的最大值或者最小值的计算。在这种场景下，我们可以通过最少处理一次这样的一致性来实现恰好处理一次这样的最高级别的一致性。
 
-# Flink运行架构
+# 第三章，Flink运行架构
 
 ## 系统架构
 
@@ -776,7 +776,7 @@ Flink中一个最有价值，也是最独特的功能是保存点（savepoints�
 
 如果我们要从保存点启动一个修改过的应用程序，那么保存点中的状态只能映射到符合标准的应用程序——它里面的算子必须具有相应的ID和状态名称。默认情况下，Flink会自动分配唯一的算子ID。然而，一个算子的ID，是基于它之前算子的ID确定性地生成的。因此，算子的ID会在其前序算子改变时改变，比如，当我们添加了新的或移除掉一个算子时，前序算子ID改变，当前算子ID就会变化。所以对于具有默认算子ID的应用程序而言，如果想在不丢失状态的前提下升级，就会受到极大的限制。因此，我们强烈建议在程序中为算子手动分配唯一ID，而不是依靠Flink的默认分配。我们将在“指定唯一的算子标识符”一节中详细说明如何分配算子标识符。
 
-# 编写第一个Flink程序
+# 第四章，编写第一个Flink程序
 
 ## 在IDEA中编写Flink程序
 
@@ -879,7 +879,7 @@ $ ./bin/stop-cluster.sh
 $ cd flink-1.10.0/log
 ```
 
-# Flink DataStream API
+# 第五章，Flink DataStream API
 
 本章介绍了Flink DataStream API的基本知识。我们展示了典型的Flink流处理程序的结构和组成部分，还讨论了Flink的类型系统以及支持的数据类型，还展示了数据和分区转换操作。窗口操作符，基于时间语义的转换操作，有状态的操作符，以及和外部系统的连接器将在接下来的章节进行介绍。阅读完这一章后，我们将会知道如何去实现一个具有基本功能的流处理程序。我们的示例程序采用Scala语言，因为Scala语言相对比较简洁。但Java API也是十分类似的（特殊情况，我们将会指出）。在我们的Github仓库里，我们所写的应用程序具有Scala和Java两种版本。
 
@@ -973,7 +973,8 @@ val remoteEnv = StreamExecutionEnvironment
 在我们的例子里面，我们这样写：
 
 ```{.scala}
-val sensorData: DataStream[SensorReading] = env.addSource(new SensorSource)
+val sensorData: DataStream[SensorReading] = env
+  .addSource(new SensorSource)
 ```
 
 这样就可以连接到传感器测量数据的数据源并创建一个类型为`SensorReading`的`DataStream`了。Flink支持很多数据类型，我们将在接下来的章节里面讲解。在我们的例子里面，我们的数据类型是一个定义好的Scala样例类。`SensorReading`样例类包含了传感器ID，数据的测量时间戳，以及测量温度值。`assignTimestampsAndWatermarks(new SensorTimeAssigner)`方法指定了如何设置事件时间语义的时间戳和水位线。有关`SensorTimeAssigner`我们后面再讲。
@@ -1061,7 +1062,13 @@ env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 env.setParallelism(1)
 val stream = env
   // source为来自Kafka的数据，这里我们实例化一个消费者，topic为hotitems
-  .addSource(new FlinkKafkaConsumer[String]("hotitems", new SimpleStringSchema(), properties))
+  .addSource(
+    new FlinkKafkaConsumer[String](
+      "hotitems",
+      new SimpleStringSchema(),
+      properties
+    )
+  )
 ```
 
 >注意，Kafka的版本为`2.2`。
@@ -1080,7 +1087,8 @@ import scala.util.Random
 case class SensorReading(id: String, timestamp: Long, temperature: Double)
 
 // 需要extends RichParallelSourceFunction, 泛型为SensorReading
-class SensorSource extends RichParallelSourceFunction[SensorReading] {
+class SensorSource
+  extends RichParallelSourceFunction[SensorReading] {
 
   // flag indicating whether source is still running.
   // flag: 表示数据源是否还在正常运行
@@ -1110,14 +1118,14 @@ class SensorSource extends RichParallelSourceFunction[SensorReading] {
 
       // update temperature
       // 更新温度
-      curFTemp = curFTemp.map( t => (t._1, t._2 + (rand.nextGaussian() * 0.5)) )
+      curFTemp = curFTemp.map(t => (t._1, t._2 + (rand.nextGaussian() * 0.5)) )
       // get current time
       // 获取当前时间戳
       val curTime = Calendar.getInstance.getTimeInMillis
 
       // emit new SensorReading
       // 发射新的传感器数据, 注意这里srcCtx.collect
-      curFTemp.foreach( t => srcCtx.collect(SensorReading(t._1, curTime, t._2)))
+      curFTemp.foreach(t => srcCtx.collect(SensorReading(t._1, curTime, t._2)))
 
       // wait for 100 ms
       Thread.sleep(100)
@@ -1440,8 +1448,7 @@ DataStream.split()方法返回`SplitStream`类型，此类型提供`select()`方
 
 例5-2将一条整数流分成了不同的流，大的整数一条流，小的整数一条流。
 
-
-```
+```{.scala .numberLines}
 val inputStream: DataStream[(Int, String)] = ...
 
 val splitted: SplitStream[(Int, String)] = inputStream
@@ -1656,7 +1663,13 @@ DataStream<Person> persons = env.fromElements(
 
 Flink类型系统的核心类是`TypeInformation`。它为系统在产生序列化器和比较操作符时，提供了必要的类型信息。例如，如果我们想使用某个key来做联结查询或者分组操作，`TypeInformation`可以让Flink做更严格的类型检查。
 
-Flink针对Java和Scala分别提供了类来产生类型信息。在Java中，类是 `org.apache.flink.api.common.typeinfo.Types` ，举个例子：
+Flink针对Java和Scala分别提供了类来产生类型信息。在Java中，类是
+
+```{.java}
+org.apache.flink.api.common.typeinfo.Types
+```
+
+举个例子：
 
 ```{.java}
 TypeInformation<Integer> intType = Types.INT;
@@ -1927,7 +1940,9 @@ class MyRedisMapper extends RedisMapper[SensorReading] {
     new RedisCommandDescription(RedisCommand.HSET, "sensor_temperature")
   }
 
-  override def getValueFromData(t: SensorReading): String = t.temperature.toString
+  override def getValueFromData(t: SensorReading): String = {
+    t.temperature.toString
+  }
 
   override def getKeyFromData(t: SensorReading): String = t.id
 
@@ -2031,7 +2046,7 @@ class MyJdbcSink() extends RichSinkFunction[SensorReading]{
 dataStream.addSink(new MyJdbcSink())
 ```
 
-# 基于时间和窗口的操作符
+# 第七章，基于时间和窗口的操作符
 
 在本章，我们将要学习DataStream API中处理时间和基于时间的操作符，例如窗口操作符。
 
@@ -2833,7 +2848,7 @@ stream
 
 WindowAssigner将会把元素分配到0个，1个或者多个窗口中去。我们看一下WindowAssigner接口：
 
-```
+```{.java}
 public abstract class WindowAssigner<T, W extends Window>
     implements Serializable {
 
@@ -3130,7 +3145,10 @@ package com.atguigu.course
 
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
+
+import org.apache.flink.streaming.api.functions
+.timestamps.BoundedOutOfOrdernessTimestampExtractor
+
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.util.Collector
@@ -3207,11 +3225,14 @@ object IntervalJoinExample {
     env.execute()
   }
 
-  class MyIntervalJoin extends ProcessJoinFunction[UserClickLog, UserBrowseLog, String] {
-    override def processElement(left: UserClickLog,
-                                right: UserBrowseLog,
-                                context: ProcessJoinFunction[UserClickLog, UserBrowseLog, String]#Context,
-                                out: Collector[String]): Unit = {
+  class MyIntervalJoin
+    extends ProcessJoinFunction[UserClickLog, UserBrowseLog, String] {
+    override def processElement(
+      left: UserClickLog,
+      right: UserBrowseLog,
+      context: ProcessJoinFunction[UserClickLog, UserBrowseLog, String]#Context,
+      out: Collector[String]
+    ): Unit = {
       out.collect(left +" =Interval Join=> "+right)
     }
   }
@@ -3373,7 +3394,7 @@ class UpdatingWindowCountFunction
 }
 ```
 
-# 有状态的计算
+# 第八章，有状态的计算
 
 状态操作符和用户自定义函数都是我们在写流处理程序时，常用的工具。事实上，大部分稍微复杂一点的逻辑都需要保存数据或者保存计算结果。很多Flink内置的操作符例如：source操作符，sink操作符等等都是有状态的，也就是说会缓存流数据或者计算结果。例如，窗口操作符将会为ProcessWindowFunction收集输入的数据，或者收集ReduceFunction计算的结果。而ProcessFunction也会保存定时器事件，一些sink方法为了做到exactly-once，会将事务保存下来。除了内置的操作符以及提供的source和sink操作符，Flink的DataStream API还在UDF函数中暴露了可以注册、保存和访问状态的接口。
 
@@ -3425,8 +3446,10 @@ class TemperatureAlertFunction(val threshold: Double)
     lastTempState = getRuntimeContext.getState[Double](lastTempDescriptor)
   }
 
-  override def flatMap(reading: SensorReading,
-                       out: Collector[(String, Double, Double)]): Unit = {
+  override def flatMap(
+    reading: SensorReading,
+    out: Collector[(String, Double, Double)]
+  ): Unit = {
     val lastTemp = lastTempState.value()
     val tempDiff = (reading.temperature - lastTemp).abs
     if (tempDiff > threshold) {
@@ -3840,7 +3863,7 @@ class SelfCleaningTemperatureAlertFunction(val threshold: Double)
 }
 ```
 
-# 从外部系统读取以及写入外部系统
+# 第九章，从外部系统读取以及写入外部系统
 
 数据可以存储在不同的系统中，例如：文件系统，对象存储系统（OSS），关系型数据库，Key-Value存储，搜索引擎索引，日志系统，消息队列，等等。每一种系统都是给特定的应用场景设计的，在某一个特定的目标上超越了其他系统。今天的数据架构，往往包含着很多不同的存储系统。在将一个组件加入到我们的系统中时，我们需要问一个问题：“这个组件和架构中的其他组件能多好的一起工作？”
 
@@ -4409,7 +4432,7 @@ TwoPhaseCommitSinkFunction的构造器需要两个TypeSerializer。一个是TXN�
 * commit(txn: TXN): Unit提交一个事务。这个操作必须是幂等的。
 * abort(txn: TXN): Unit终止一个事务。
 
-# Flink部署与运维
+# 第十章，Flink部署与运维
 
 ## 部署方式
 
@@ -4627,7 +4650,7 @@ Modify job bc0b2ad61ecd4a615d92ce25390f61ad.
 ​Rescaled job bc0b2ad61ecd4a615d92ce25390f61ad. Its new parallelism is 16.
 ```
 
-# Flink CEP简介
+# 第十一章，Flink CEP简介
 
 *什么是复杂事件CEP？*
 
@@ -4870,7 +4893,7 @@ case class LoginEvent(userId: String,
                       eventTime: String)
 ```
 
-# Table API 和 Flink SQL
+# 第十二章，Table API 和 Flink SQL
 
 ## 整体介绍
 
@@ -6529,7 +6552,7 @@ object HotItemsSQL {
 }
 ```
 
-# 尚硅谷大数据技术之电商用户行为分析
+# 第十三章，尚硅谷大数据技术之电商用户行为分析
 
 ## 数据集解析
 
@@ -6580,12 +6603,18 @@ object HotItemsSQL {
 
 *程序主体*
 
-```{.scala}
+```{.scala .numberLines}
 // 把数据需要ETL成UserBehavior类型
-case class UserBehavior(userId: Long, itemId: Long, categoryId: Int, behavior: String, timestamp: Long)
+case class UserBehavior(userId: Long,
+                        itemId: Long,
+                        categoryId: Int,
+                        behavior: String,
+                        timestamp: Long)
 
 // 全窗口聚合函数输出的数据类型
-case class ItemViewCount(itemId: Long, windowEnd: Long, count: Long)
+case class ItemViewCount(itemId: Long,
+                         windowEnd: Long,
+                         count: Long)
  
 object HotItems {
   def main(args: Array[String]): Unit = {
@@ -6593,7 +6622,8 @@ object HotItems {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     // 设定Time类型为EventTime
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    // 为了打印到控制台的结果不乱序，我们配置全局的并发为1，这里改变并发对结果正确性没有影响
+    // 为了打印到控制台的结果不乱序，
+    // 我们配置全局的并发为1，这里改变并发对结果正确性没有影响
     env.setParallelism(1)
     val stream = env
       // 以window下为例，需替换成数据集的绝对路径
@@ -6601,7 +6631,10 @@ object HotItems {
       .map(line => {
         val linearray = line.split(",")
         UserBehavior(linearray(0).toLong,
-          linearray(1).toLong, linearray(2).toInt, linearray(3), linearray(4).toLong)
+                     linearray(1).toLong,
+                     linearray(2).toInt,
+                     linearray(3),
+                     linearray(4).toLong)
       })
       // 过滤出点击事件
       .filter(_.behavior == "pv")
@@ -6633,7 +6666,8 @@ object HotItems {
 
 ```{.scala}
 // COUNT统计的聚合函数实现，每出现一条记录就加一
-class CountAgg extends AggregateFunction[UserBehavior, Long, Long] {
+class CountAgg
+  extends AggregateFunction[UserBehavior, Long, Long] {
   override def createAccumulator(): Long = 0L
   override def add(userBehavior: UserBehavior, acc: Long): Long = acc + 1
   override def getResult(acc: Long): Long = acc
@@ -6649,7 +6683,8 @@ class CountAgg extends AggregateFunction[UserBehavior, Long, Long] {
 
 ```{.scala}
 // 用于输出窗口的结果
-class WindowResultFunction extends ProcessWindowFunction[Long, ItemViewCount, String, TimeWindow] {
+class WindowResultFunction
+  extends ProcessWindowFunction[Long, ItemViewCount, String, TimeWindow] {
   override def process(key: String,
                         context: Context,
                         elements: Iterable[Long],
@@ -6681,9 +6716,11 @@ class WindowResultFunction extends ProcessWindowFunction[Long, ItemViewCount, St
     }
 
     // 定时器事件
-    override def onTimer(ts: Long,
-                         ctx: KeyedProcessFunction[Long, ItemViewCount, String]#OnTimerContext,
-                         out: Collector[String]): Unit = {
+    override def onTimer(
+      ts: Long,
+      ctx: KeyedProcessFunction[Long, ItemViewCount, String]#OnTimerContext,
+      out: Collector[String]
+    ): Unit = {
       val allItems: ListBuffer[ItemViewCount] = ListBuffer()
       // 导入一些隐式类型转换
       import scala.collection.JavaConversions._
@@ -6830,7 +6867,7 @@ object KafkaProducerUtil {
 
 完整代码如下：
 
-```{.scala}
+```{.scala .numberLines}
 package com.atguigu.project
 
 import java.sql.Timestamp
@@ -6841,7 +6878,10 @@ import org.apache.flink.api.common.state.ListStateDescriptor
 import org.apache.flink.api.scala.typeutils.Types
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
+
+import org.apache.flink.streaming.api.functions
+.timestamps.BoundedOutOfOrdernessTimestampExtractor
+
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
 import org.apache.flink.streaming.api.windowing.time.Time
@@ -6874,7 +6914,11 @@ object ApacheLogAnalysis {
         // 把时间戳ETL成毫秒
         val simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy:HH:mm:ss")
         val timestamp = simpleDateFormat.parse(linearray(3)).getTime
-        ApacheLogEvent(linearray(0), linearray(2), timestamp, linearray(5), linearray(6))
+        ApacheLogEvent(linearray(0),
+                       linearray(2),
+                       timestamp,
+                       linearray(5),
+                       linearray(6))
       })
       .assignTimestampsAndWatermarks(
         new BoundedOutOfOrdernessTimestampExtractor[ApacheLogEvent](
@@ -6919,7 +6963,11 @@ object ApacheLogAnalysis {
       )
     )
 
-    override def processElement(input: UrlViewCount, context: KeyedProcessFunction[Long, UrlViewCount, String]#Context, collector: Collector[String]): Unit = {
+    override def processElement(
+      input: UrlViewCount,
+      context: KeyedProcessFunction[Long, UrlViewCount, String]#Context,
+      collector: Collector[String]
+    ): Unit = {
       // 每条数据都保存到状态中
       urlState.add(input)
       context
@@ -7016,7 +7064,8 @@ object UvWithBloomFilter {
   }
 
   class MyProcess
-    extends ProcessWindowFunction[(String, String), (Long, Long), String, TimeWindow] {
+    extends ProcessWindowFunction[(String, String),
+      (Long, Long), String, TimeWindow] {
     lazy val jedis = new Jedis("localhost", 6379)
     lazy val bloom = new Bloom(1 << 29)
 
@@ -7039,8 +7088,6 @@ object UvWithBloomFilter {
         jedis.setbit(storeKey, offset, true)
         jedis.hset("UvCountHashTable", storeKey, (count + 1).toString)
       }
-
-
 
 //      out.collect((count, storeKey.toLong))
 
@@ -7621,7 +7668,7 @@ object TwoStreamsJoin {
 }
 ```
 
-# 常见面试题解答
+# 第十四章，常见面试题解答
 
 ## 面试题一
 
