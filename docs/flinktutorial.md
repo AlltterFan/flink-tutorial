@@ -841,7 +841,7 @@ $ nc -lk 9999
 
 ## 下载Flink运行时环境，提交Jar包的运行方式
 
-下载链接：http://mirror.bit.edu.cn/apache/flink/flink-1.10.0/flink-1.10.0-bin-scala_2.11.tgz
+下载链接：http://mirror.bit.edu.cn/apache/flink/flink-1.10.1/flink-1.10.1-bin-scala_2.11.tgz
 
 然后解压
 
